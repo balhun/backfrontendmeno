@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email</title>
+    <style>
+        body { background-color: antiquewhite; }
+
+        #container {
+            width: 70%;
+            margin: 0px auto;
+        }
+
+        #adat {
+            margin-top: 10px;
+        }
+
+        #feladok {
+            background-color: white;
+            border: 1px solid black;
+            border-top: none;
+            padding: 10px;
+        }
+
+        #levelek {
+            background-color: white;
+            border: 1px solid black;
+            border-top: none;
+            padding: 10px;
+        }
+
+        #controls {
+            float: right;
+        }
+
+        .text { 
+            background-color: cadetblue; color: white; 
+            font-size: 15pt;
+            padding: 5px;
+            border: 1px solid black;
+        }
+
+        span {
+            cursor: pointer;
+            color: blue;
+        }
+    </style>
+
+    <script>
+        async function start() {
+            let response = await fetch("http://localhost:88/feladok");
+            let feladok = await response.json();
+            ""
+            let html = "";
+            for (let felado of feladok) {
+                html += ` [ <span onclick="kuldott('${felado}')">Küldött</span> ] / [ <span onclick="fogadott('${felado}')">Fogadott</span> ] ${felado}<br>`
+            }
+            document.getElementById("feladok").innerHTML = html;
+        }
+
+        async function kuldott(felado) {
+            let url = `http://localhost:88/kuldott?felado=${felado}`
+            let tol = document.getElementById("tol").value;
+            let ig = document.getElementById("ig").value;
+            if (document.getElementById("cbIdopont").checked) url += `&tol=${tol}&ig=${ig}`
+            let response = await fetch(url);
+            let feladok = await response.json();
+            let html = "";
+            for (let felado of feladok) {
+                html += `* [${felado.mikor}] ${felado.cimzett} (${felado.hossz} bájt)<br>`;
+            }
+            document.getElementById("levelek").innerHTML = html;
+        }
+
+        async function fogadott(felado) {
+            let url = `http://localhost:88/kuldott?cimzett=${felado}`
+            let tol = document.getElementById("tol").value;
+            let ig = document.getElementById("ig").value;
+            if (document.getElementById("cbIdopont").checked) url += `&tol=${tol}&ig=${ig}`
+            let response = await fetch(url);
+            let feladok = await response.json();
+            let html = "";
+            for (let felado of feladok) {
+                html += `* [${felado.mikor}] ${felado.felado} (${felado.hossz} bájt)<br>`;
+            }
+            document.getElementById("levelek").innerHTML = html;
+        }
+    </script>
+</head>
+<body onload="start();">
+    <div id="container">
+        <div class="adat">
+            <div class="text" >Feladók:</div>
+            <div id="feladok"></div>
+
+        </div>
+        <div id="adat">
+            <div class="text" >Levelek:
+                <div id="controls">
+                    <input type="checkbox" id="cbIdopont"> Időpont:
+                    <input type="time" id="tol"> - <input type="time" id="ig">
+                </div>
+                <br clear=both>
+            </div>
+            <div id="levelek"></div>
+        </div>
+    </div>
+</body>
+</html>
